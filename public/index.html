@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <title>FB Login</title>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link href="http://meyerweb.com/eric/tools/css/reset/reset200802.css" rel="stylesheet" type="text/css">
+
+    <style>
+
+      body {
+        font-family: arial, sans-serif;
+        font-size: 12px;
+        line-height: 16px;
+        min-width: 1000px;
+      }
+
+      #response,
+      #ratings {
+        width: 48%;
+        padding: 10px;
+      }
+
+      #response {
+        float: left;
+      }
+
+      #ratings {
+        float: right;
+      }
+
+      #response ul,
+      #ratings ul {
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #EFEFEF;
+        overflow: hidden
+      }
+
+      #response li,
+      #ratings li {
+        padding: 3px 0;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        width: 100%;
+        white-space: nowrap;
+      }
+
+      #response h2,
+      #ratings h2 {
+        font-size: 16px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+
+    </style>
+
+    <script>
+
+          // SUBMIT REPLY
+          function replySubmit(id) {
+            console.log(id)
+
+            FB.api('/' + id + '/comments','post',{'object': {message:'test'}}, function(response) {
+              console.log(response)
+            })
+          };
+    </script>
+
+  </head>
+
+  <body>
+
+    <script>
+
+      //FB JavaScript SDK - development@where2getit.com
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '652911311464495',
+          xfbml      : true,
+          version    : 'v2.0'
+        });
+        FB.login(function(){
+
+          // GET MANAGED PAGES
+          FB.api('/me/accounts', function(response) {
+            console.log('Managed pages:' + JSON.stringify(response));
+            var r = JSON.stringify(response)
+            var s = JSON.parse(r)
+            var i = 0
+            $(s.data).each (function() {
+              var name = s.data[i].name;
+              var token = s.data[i].access_token;
+              var id = s.data[i].id;
+              $(
+                '<ul><li><strong>' + name + '</strong></li>' +
+                '<li><strong>Token:</strong> ' + token + '</li>' +
+                '<li><strong>Page ID:</strong> ' + id + '</li>' +
+                '<li><strong>Page URL:</strong> <a href="https://www.facebook.com/' + id + '" target="_blank">https://www.facebook.com/' + id + '</a></li></ul>'
+              ).appendTo('#response')
+              i++
+             });
+          });
+
+          // GET PAGE RATINGS
+          $('#rating_submit').on('click', function() {
+            var pageToken = $('#page_token').val()
+            var pageID = $('#page_id').val()
+
+            FB.api('/' + pageID + '/ratings','get',{access_token: pageToken},function(response) {
+
+              var r = JSON.stringify(response)
+              var s = JSON.parse(r)
+
+              console.log('Ratings: ' + r)
+
+              var i = 0
+
+              $(s.data).each (function() {
+
+                var rName = s.data[i].reviewer.name
+                var rId = s.data[i].reviewer.id
+                var rEmail = s.data[i].reviewer.email
+                var rRating = s.data[i].rating
+                var rTime = s.data[i].created_time
+                var rId = s.data[i].reviewer.id
+                var rNextPage = s.paging.next
+
+                if (s.data[i].review_text === undefined) {
+                  var rText = 'No Comment'
+                } else {
+                  var rText = s.data[i].review_text
+                }
+
+                console.log(JSON.rGraph);
+
+                $(
+                  '<ul><li><strong>'+ rName + '</strong> (' + rId + ')</li>' +
+                  '<li><strong>Email:</strong> ' + rEmail + '</li>' +
+                  '<li><strong>Rating:</strong> ' + rRating + '</li>' +
+                  '<li><strong>Comment:</strong> ' + rText + '</li>' +
+                  '<li><strong>Rating Time:</strong> ' + rTime + '</li>' +
+                  //'<li>' + rOpenGraphStory + '</li>' +
+                  '<li><strong>Reply:</strong> <input type="textbox"> <button class="replySubmit" data-id="' + rId + '" onclick="replySubmit(' + rId + ');">Reply</button></li></ul>'
+                ).appendTo('#ratings')
+
+                i++
+
+              });
+
+            });
+          });
+
+        }, {scope: 'manage_pages,publish_actions'});
+      };
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "//connect.facebook.net/en_US/sdk/debug.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+
+    </script>
+
+    <div id="response">
+
+      <h2>Managed Accounts</h2>
+
+    </div>
+
+    <!--<div id="childList">
+
+      <h2>Child Pages</h2>
+
+      <label for="parent_id">Enter Parent Page ID: </label>
+      <input type="textbox" id="parent_id">
+      <button id="parent_id_submit">Get Child Page ID</button>
+
+    </div>-->
+
+    <div id="ratings">
+
+      <h2>Page Ratings</h2>
+
+      <p style="margin-bottom: 20px;">Copy and paste the Token and Page ID for desired accounts below to view a list of reviews left on the page</p>
+
+      <p>
+        <label for="page_token">Token: </label>
+        <input type="textbox" value="CAAJR0cLKKC8BAAKXXZBky5Lc4SyrQUcsCCBIiVZAHZBBQwhyKBktkVhJ5LZBZAmKi6CXItzr2eGIRPb2elOFH5FsBZC5Q8PZAYDwsRN1vrWYVo2OZAAIHZA40WoUfEtRKCkEB0gcTwNp4UOJx4XVYnnP0ssJ6lwnr7T4pqDv6qyUamGqVdGP0xSRc7OZCePs2mPrmBIOEMydPCQgZDZD" id="page_token">
+      </p>
+      <p style="margin-bottom: 20px">
+        <label for="page_id">Page ID: </label>
+        <input type="textbox" value="323899538220" id="page_id">
+      </p>
+
+      <p><button id="rating_submit">Get Reviews</button></p>
+
+    </div>
+
+  </body>
+</html>
